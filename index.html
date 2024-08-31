@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Stats</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #181818;
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1DB954;
+            padding-bottom: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #282828;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card img {
+            width: 100%;
+            border-bottom: 2px solid #1DB954;
+        }
+
+        .card .info {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .card .info h3 {
+            font-size: 18px;
+            margin: 0;
+            color: #1DB954;
+        }
+
+        .card .info p {
+            font-size: 14px;
+            margin: 10px 0 0;
+            color: #b3b3b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Your Spotify Stats</h1>
+        <div id="top-artists" class="section">
+            <h2>Top Artists</h2>
+            <div class="grid" id="artists-list"></div>
+        </div>
+        <div id="top-tracks" class="section">
+            <h2>Top Tracks</h2>
+            <div class="grid" id="tracks-list"></div>
+        </div>
+        <div id="top-genres" class="section">
+            <h2>Top Genres</h2>
+            <div class="grid" id="genres-list"></div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchData(endpoint) {
+            try {
+                const response = await fetch(endpoint);
+                if (!response.ok) throw new Error('Network response was not ok');
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return null;
+            }
+        }
+
+        function createCard(image, title, subtitle = '') {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const img = document.createElement('img');
+            img.src = image || 'https://developer.spotify.com/images/guidelines/design/icon3@2x.png';
+            card.appendChild(img);
+
+            const info = document.createElement('div');
+            info.className = 'info';
+
+            const h3 = document.createElement('h3');
+            h3.textContent = title;
+            info.appendChild(h3);
+
+            if (subtitle) {
+                const p = document.createElement('p');
+                p.textContent = subtitle;
+                info.appendChild(p);
+            }
+
+            card.appendChild(info);
+            return card;
+        }
+
+        async function displayTopArtists() {
+            const data = await fetchData('/top-artists');
+            if (data) {
+                const list = document.getElementById('artists-list');
+                data.items.forEach(artist => {
+                    const card = createCard(artist.images[0]?.url, artist.name);
+                    list.appendChild(card);
+                });
+            }
+        }
+
+        async function displayTopTracks() {
+            const data = await fetchData('/top-tracks');
+            if (data) {
+                const list = document.getElementById('tracks-list');
+                data.items.forEach(track => {
+                    const card = createCard(track.album.images[0]?.url, track.name, track.artists[0]?.name);
+                    list.appendChild(card);
+                });
+            }
+        }
+
+        async function displayTopGenres() {
+            const data = await fetchData('/top-genres');
+            if (data) {
+                const list = document.getElementById('genres-list');
+                data.genres.forEach(genre => {
+                    const card = createCard(null, genre);
+                    list.appendChild(card);
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            displayTopArtists();
+            displayTopTracks();
+            displayTopGenres();
+        });
+    </script>
+</body>
+
+</html>
