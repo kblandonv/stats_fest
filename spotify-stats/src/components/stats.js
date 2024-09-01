@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import TopArtists from './TopArtists';
 import TopTracks from './TopTracks';
 import TopGenres from './TopGenres';
+import RecentStreams from './RecentStreams';
+import UserProfile from './UserProfile';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -50,6 +52,7 @@ const Stats = () => {
 
     return (
         <Container>
+            <UserProfile />
             <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>Tus Estadísticas de Spotify</h1>
             <TimeRangeSelector 
                 onChange={(e) => setTimeRange(e.target.value)} 
@@ -62,6 +65,7 @@ const Stats = () => {
             <TopArtists timeRange={timeRange} />
             <TopTracks timeRange={timeRange} />
             <TopGenres timeRange={timeRange} />
+            <RecentStreams />
         </Container>
     );
 };
