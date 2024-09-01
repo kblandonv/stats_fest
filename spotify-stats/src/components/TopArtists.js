@@ -48,12 +48,12 @@ const ArtistName = styled.h3`
   color: #1DB954;
 `;
 
-const TopArtists = () => {
+const TopArtists = ({ timeRange }) => {
     const [artists, setArtists] = useState([]);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        axios.get('/top-artists')
+        axios.get(`/top-artists?time_range=${timeRange}`)
             .then(response => {
                 setArtists(response.data.items);
             })
@@ -61,7 +61,7 @@ const TopArtists = () => {
                 console.error('Error fetching top artists:', err);
                 setError('No se pudieron cargar los artistas.');
             });
-    }, []);
+    }, [timeRange]);
 
     if (error) {
         return <p style={{ color: 'red' }}>{error}</p>;
@@ -73,7 +73,9 @@ const TopArtists = () => {
             <Grid>
                 {artists.map(artist => (
                     <Card key={artist.id}>
-                        <CardImage src={artist.images[0]?.url || 'https://via.placeholder.com/150'} alt={artist.name} />
+                        <a href={artist.external_urls.spotify} target="_blank" rel="noopener noreferrer">
+                            <CardImage src={artist.images[0]?.url || 'https://via.placeholder.com/150'} alt={artist.name} />
+                        </a>
                         <CardInfo>
                             <ArtistName>{artist.name}</ArtistName>
                         </CardInfo>

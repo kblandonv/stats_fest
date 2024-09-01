@@ -15,7 +15,7 @@ const Title = styled.h2`
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 20px;
 `;
 
@@ -31,7 +31,7 @@ const Card = styled.div`
   }
 `;
 
-const AlbumImage = styled.img`
+const CardImage = styled.img`
   width: 100%;
   height: 150px;
   object-fit: cover;
@@ -50,16 +50,16 @@ const TrackName = styled.h3`
 
 const ArtistName = styled.p`
   font-size: 0.9em;
-  color: #b3b3b3;
-  margin-top: 5px;
+  margin: 5px 0 0;
+  color: #ccc;
 `;
 
-const TopTracks = () => {
+const TopTracks = ({ timeRange }) => {
     const [tracks, setTracks] = useState([]);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        axios.get('/top-tracks')
+        axios.get(`/top-tracks?time_range=${timeRange}`)
             .then(response => {
                 setTracks(response.data.items);
             })
@@ -67,7 +67,7 @@ const TopTracks = () => {
                 console.error('Error fetching top tracks:', err);
                 setError('No se pudieron cargar las canciones.');
             });
-    }, []);
+    }, [timeRange]);
 
     if (error) {
         return <p style={{ color: 'red' }}>{error}</p>;
@@ -79,7 +79,9 @@ const TopTracks = () => {
             <Grid>
                 {tracks.map(track => (
                     <Card key={track.id}>
-                        <AlbumImage src={track.album.images[0]?.url || 'https://via.placeholder.com/150'} alt={track.name} />
+                        <a href={track.external_urls.spotify} target="_blank" rel="noopener noreferrer">
+                            <CardImage src={track.album.images[0]?.url || 'https://via.placeholder.com/150'} alt={track.name} />
+                        </a>
                         <CardInfo>
                             <TrackName>{track.name}</TrackName>
                             <ArtistName>{track.artists.map(artist => artist.name).join(', ')}</ArtistName>

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
 
 const Section = styled.div`
   margin-bottom: 40px;
@@ -27,38 +26,29 @@ const GenreBadge = styled.span`
   font-size: 0.9em;
 `;
 
-const TopGenres = () => {
+const TopGenres = ({ timeRange }) => {
     const [genres, setGenres] = useState([]);
     const [error, setError] = useState(null);
-    const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchTopGenres = async () => {
+        const fetchGenres = async () => {
             try {
-                const response = await axios.get('http://localhost:4000/top-genres', { withCredentials: true });
-                setGenres(response.data.genres);
+                const response = await axios.get(`/top-genres?time_range=${timeRange}`);
+                if (response.data && Array.isArray(response.data.genres)) {
+                    setGenres(response.data.genres);
+                } else {
+                    console.warn('Unexpected response format:', response.data);
+                    setGenres([]);
+                }
             } catch (err) {
                 console.error('Error fetching top genres:', err);
-                if (err.response && err.response.status === 401) {
-                    // Token expirado, intentar refrescar
-                    try {
-                        await axios.get('http://localhost:4000/refresh-token', { withCredentials: true });
-                        // Reintentar la solicitud original
-                        const retryResponse = await axios.get('http://localhost:4000/top-genres', { withCredentials: true });
-                        setGenres(retryResponse.data.genres);
-                    } catch (refreshError) {
-                        console.error('Error refreshing token:', refreshError);
-                        setError('Sesión expirada. Por favor, inicia sesión de nuevo.');
-                        navigate('/');
-                    }
-                } else {
-                    setError('No se pudieron cargar los géneros.');
-                }
+                setError('No se pudieron cargar los géneros.');
+                setGenres([]);
             }
         };
 
-        fetchTopGenres();
-    }, [navigate]);
+        fetchGenres();
+    }, [timeRange]);
 
     if (error) {
         return <p style={{ color: 'red' }}>{error}</p>;
@@ -67,11 +57,15 @@ const TopGenres = () => {
     return (
         <Section>
             <Title>Top Géneros</Title>
-            <GenresContainer>
-                {genres.map((genre, index) => (
-                    <GenreBadge key={index}>{genre}</GenreBadge>
-                ))}
-            </GenresContainer>
+            {genres.length > 0 ? (
+                <GenresContainer>
+                    {genres.map((genre, index) => (
+                        <GenreBadge key={index}>{genre}</GenreBadge>
+                    ))}
+                </GenresContainer>
+            ) : (
+                <p>No se encontraron géneros.</p>
+            )}
         </Section>
     );
 };
