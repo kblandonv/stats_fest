@@ -85,6 +85,7 @@ app.get('/check-auth', (req, res) => {
 
 app.get('/top-artists', async (req, res) => {
     const accessToken = req.cookies.access_token;
+    const timeRange = req.query.time_range || 'medium_term'; // Default to 6 months if not provided
 
     if (!accessToken) {
         return res.status(401).json({ error: 'No access token provided' });
@@ -92,7 +93,8 @@ app.get('/top-artists', async (req, res) => {
 
     try {
         const response = await axios.get('https://api.spotify.com/v1/me/top/artists', {
-            headers: { 'Authorization': 'Bearer ' + accessToken }
+            headers: { 'Authorization': 'Bearer ' + accessToken },
+            params: { time_range: timeRange }
         });
 
         res.json(response.data);
@@ -108,6 +110,7 @@ app.get('/top-artists', async (req, res) => {
 
 app.get('/top-tracks', async (req, res) => {
     const accessToken = req.cookies.access_token;
+    const timeRange = req.query.time_range || 'medium_term'; // Default to 6 months if not provided
 
     if (!accessToken) {
         return res.status(401).json({ error: 'No access token provided' });
@@ -115,7 +118,8 @@ app.get('/top-tracks', async (req, res) => {
 
     try {
         const response = await axios.get('https://api.spotify.com/v1/me/top/tracks', {
-            headers: { 'Authorization': 'Bearer ' + accessToken }
+            headers: { 'Authorization': 'Bearer ' + accessToken },
+            params: { time_range: timeRange }
         });
 
         res.json(response.data);
@@ -131,6 +135,7 @@ app.get('/top-tracks', async (req, res) => {
 
 app.get('/top-genres', async (req, res) => {
     const accessToken = req.cookies.access_token;
+    const timeRange = req.query.time_range || 'medium_term';
 
     if (!accessToken) {
         return res.status(401).json({ error: 'No access token provided' });
@@ -138,15 +143,25 @@ app.get('/top-genres', async (req, res) => {
 
     try {
         const response = await axios.get('https://api.spotify.com/v1/me/top/artists', {
-            headers: { 'Authorization': 'Bearer ' + accessToken }
+            headers: { 'Authorization': 'Bearer ' + accessToken },
+            params: { time_range: timeRange, limit: 50 }  // Get more artists for better genre representation
         });
 
-        const genres = new Set();
-        response.data.items.forEach(artist => {
-            artist.genres.forEach(genre => genres.add(genre));
+        const artists = response.data.items;
+        const genreCount = {};
+
+        artists.forEach(artist => {
+            artist.genres.forEach(genre => {
+                genreCount[genre] = (genreCount[genre] || 0) + 1;
+            });
         });
 
-        res.json({ genres: Array.from(genres) });
+        const sortedGenres = Object.entries(genreCount)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)  // Get top 10 genres
+            .map(([genre]) => genre);
+
+        res.json({ genres: sortedGenres });
     } catch (error) {
         console.error('Error fetching top genres:', error.response?.data || error.message);
         if (error.response?.status === 401) {
