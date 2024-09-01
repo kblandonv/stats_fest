@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    const scopes = 'user-top-read playlist-read-private';
+    const scopes = 'user-read-recently-played user-top-read playlist-read-private user-read-email user-read-private';
     const authUrl = `https://accounts.spotify.com/authorize?` +
         querystring.stringify({
             response_type: 'code',
@@ -169,6 +169,53 @@ app.get('/top-genres', async (req, res) => {
             return res.status(401).json({ error: 'Token expired or invalid' });
         }
         res.status(500).json({ error: 'Failed to fetch top genres' });
+    }
+});
+
+app.get('/recent-streams', async (req, res) => {
+    const accessToken = req.cookies.access_token;
+
+    if (!accessToken) {
+        return res.status(401).json({ error: 'No access token provided' });
+    }
+
+    try {
+        const response = await axios.get('https://api.spotify.com/v1/me/player/recently-played', {
+            headers: { 'Authorization': 'Bearer ' + accessToken },
+            params: { limit: 20 }  // Puedes ajustar el límite
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error fetching recent streams:', error.response?.data || error.message);
+        if (error.response?.status === 401) {
+            res.clearCookie('access_token');
+            return res.status(401).json({ error: 'Token expired or invalid' });
+        }
+        res.status(500).json({ error: 'Failed to fetch recent streams' });
+    }
+});
+
+app.get('/user-profile', async (req, res) => {
+    const accessToken = req.cookies.access_token;
+
+    if (!accessToken) {
+        return res.status(401).json({ error: 'No access token provided' });
+    }
+
+    try {
+        const response = await axios.get('https://api.spotify.com/v1/me', {
+            headers: { 'Authorization': 'Bearer ' + accessToken }
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error fetching user profile:', error.response?.data || error.message);
+        if (error.response?.status === 401) {
+            res.clearCookie('access_token');
+            return res.status(401).json({ error: 'Token expired or invalid' });
+        }
+        res.status(500).json({ error: 'Failed to fetch user profile' });
     }
 });
 
