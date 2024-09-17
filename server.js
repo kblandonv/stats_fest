@@ -264,6 +264,56 @@ app.use((req, res, next) => {
 });
 
 const PORT = process.env.PORT || 4000;
+
+const multer = require('multer');
+const AdmZip = require('adm-zip');
+const fs = require('fs');
+
+// Configuración de Multer para manejar la subida de archivos
+const upload = multer({ dest: 'uploads/' });
+
+app.post('/upload', upload.single('file'), (req, res) => {
+    try {
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).send('No file uploaded.');
+        }
+
+        const filePath = path.join(__dirname, 'uploads', file.filename);
+
+        // Verifica si el archivo es un ZIP
+        if (file.mimetype === 'application/zip') {
+            const zip = new AdmZip(filePath);
+            const zipEntries = zip.getEntries(); // Obtener archivos dentro del ZIP
+
+            // Procesar cada archivo JSON dentro del ZIP
+            zipEntries.forEach((entry) => {
+                if (entry.entryName.endsWith('.json')) {
+                    const jsonData = JSON.parse(zip.readAsText(entry));
+                    // Aquí procesa los datos del archivo JSON (reproducciones, minutos, etc.)
+                    console.log(jsonData);
+                }
+            });
+
+            return res.status(200).send('ZIP file processed successfully.');
+        } else if (file.mimetype === 'application/json') {
+            // Si es un archivo JSON
+            const jsonData = JSON.parse(fs.readFileSync(filePath));
+            console.log(jsonData);
+
+            // Aquí procesa los datos del archivo JSON
+            return res.status(200).send('JSON file processed successfully.');
+        } else {
+            return res.status(400).send('Unsupported file type. Please upload a JSON or ZIP file.');
+        }
+    } catch (error) {
+        console.error('Error processing file:', error);
+        return res.status(500).send('An error occurred while processing the file.');
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+

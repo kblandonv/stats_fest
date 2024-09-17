@@ -4,7 +4,7 @@ import TopTracks from './TopTracks';
 import TopGenres from './TopGenres';
 import RecentStreams from './RecentStreams';
 import UserProfile from './UserProfile';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 
 const TimeRangeSelector = styled.select`
@@ -20,6 +20,21 @@ const Container = styled.div`
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+`;
+
+const UploadButton = styled(Link)`
+  display: inline-block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background-color: #1DB954;
+  color: white;
+  text-align: center;
+  font-size: 1em;
+  border-radius: 5px;
+  text-decoration: none;
+  &:hover {
+    background-color: #17a741;
+  }
 `;
 
 const Stats = () => {
@@ -54,14 +69,18 @@ const Stats = () => {
         <Container>
             <UserProfile />
             <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>Tus Estadísticas de Spotify</h1>
-            <TimeRangeSelector 
-                onChange={(e) => setTimeRange(e.target.value)} 
+
+            <UploadButton to="/upload">Upload Your Spotify Data</UploadButton>
+
+            <TimeRangeSelector
+                onChange={(e) => setTimeRange(e.target.value)}
                 value={timeRange}
             >
                 <option value="short_term">Últimas 4 semanas</option>
                 <option value="medium_term">Últimos 6 meses</option>
                 <option value="long_term">Todo el tiempo</option>
             </TimeRangeSelector>
+
             <TopArtists timeRange={timeRange} />
             <TopTracks timeRange={timeRange} />
             <TopGenres timeRange={timeRange} />
